@@ -11,7 +11,7 @@ namespace HappyFace.Units
         private readonly ISourceBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>> _input;
         private readonly IPropagatorBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result> _output;
 
-        public static Result Build(Tuple<FetchResponse, ExtractResponse, ScrapeResponse> input)
+        private static Result Build(Tuple<FetchResponse, ExtractResponse, ScrapeResponse> input)
         {
             return new Result
             {
@@ -57,24 +57,19 @@ namespace HappyFace.Units
 
         #region Constructors
 
-        public Builder()
-            : this(Build)
-        {
-        }
-
         public Builder(Func<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result> transform)
             : this(new TransformBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result>(transform))
         {
         }
 
-        public Builder(IPropagatorBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result> output)
+        public Builder(IPropagatorBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result> output = null)
         {
             _input = new JoinBlock<FetchResponse, ExtractResponse, ScrapeResponse>(new GroupingDataflowBlockOptions
             {
                 Greedy = true
             });
 
-            _output = output;
+            _output = output ?? new TransformBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result>(x => Build(x));
 
             var options = new DataflowLinkOptions
             {

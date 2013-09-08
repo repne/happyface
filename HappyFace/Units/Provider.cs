@@ -14,7 +14,7 @@ namespace HappyFace.Units
         private readonly IKeyValueStore<string, Result> _store;
         private readonly IPropagatorBlock<Result, FetchTarget> _inner;
 
-        public static IEnumerable<FetchTarget> Provide(IKeyValueStore<string, Result> store, Result result)
+        private static IEnumerable<FetchTarget> Provide(IKeyValueStore<string, Result> store, Result result)
         {
             if (result.Level == 0)
             {
@@ -32,20 +32,14 @@ namespace HappyFace.Units
 
         #region Constructors
 
-        public Provider(IKeyValueStore<string, Result> store)
-            : this(store, result => Provide(store, result))
-        {
-        }
-
-
         public Provider(IKeyValueStore<string, Result> store, Func<Result, IEnumerable<FetchTarget>> transform)
             : this(store, new TransformManyBlock<Result, FetchTarget>(transform))
         {
         }
 
-        public Provider(IKeyValueStore<string, Result> store, IPropagatorBlock<Result, FetchTarget> inner)
+        public Provider(IKeyValueStore<string, Result> store, IPropagatorBlock<Result, FetchTarget> inner = null)
         {
-            _inner = inner;
+            _inner = inner ?? new TransformManyBlock<Result, FetchTarget>(result => Provide(store, result));
             _store = store;
         }
 

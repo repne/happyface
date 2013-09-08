@@ -19,19 +19,14 @@ namespace HappyFace.Units
 
         #region Constructors
 
-        public Parser(IDocumentFactory documentFactory)
-            : this(documentFactory, response => Parse(documentFactory, response))
-        {
-        }
-
         public Parser(IDocumentFactory documentFactory, Func<FetchResponse, IDocument> transform)
             : this(documentFactory, new TransformBlock<FetchResponse, IDocument>(transform))
         {
         }
 
-        public Parser(IDocumentFactory documentFactory, IPropagatorBlock<FetchResponse, IDocument> input)
+        public Parser(IDocumentFactory documentFactory, IPropagatorBlock<FetchResponse, IDocument> input = null)
         {
-            _input = input;
+            _input = input ?? new TransformBlock<FetchResponse, IDocument>(response => Parse(documentFactory, response));
             _output = new BroadcastBlock<IDocument>(x => x);
             _documentFactory = documentFactory;
 

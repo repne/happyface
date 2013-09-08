@@ -11,7 +11,7 @@ namespace HappyFace.Units
         private readonly IKeyValueStore<string, Result> _store;
         private readonly IPropagatorBlock<Result, Result> _inner;
 
-        public static Result Store(IKeyValueStore<string, Result> store, Result result)
+        private static Result Store(IKeyValueStore<string, Result> store, Result result)
         {
             store.Set(result.GetKey(), result);
             return result;
@@ -19,20 +19,15 @@ namespace HappyFace.Units
 
         #region Constructors
 
-        public Storer(IKeyValueStore<string, Result> store)
-            : this(store, result => Store(store, result))
-        {
-        }
-
         public Storer(IKeyValueStore<string, Result> store, Func<Result, Result> transform)
             : this(store, new BroadcastBlock<Result>(transform))
         {
         }
 
-        public Storer(IKeyValueStore<string, Result> store, IPropagatorBlock<Result, Result> inner)
+        public Storer(IKeyValueStore<string, Result> store, IPropagatorBlock<Result, Result> inner = null)
         {
             _store = store;
-            _inner = inner;
+            _inner = inner ?? new BroadcastBlock<Result>(result => Store(store, result));
         }
 
         #endregion

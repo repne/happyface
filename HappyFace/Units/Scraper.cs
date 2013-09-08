@@ -12,7 +12,7 @@ namespace HappyFace.Units
     {
         private readonly IPropagatorBlock<IDocument, ScrapeResponse> _inner;
 
-        public static ScrapeResponse Scrape(IDocument document)
+        private static ScrapeResponse Scrape(IDocument document)
         {
             var baseUri = document.BaseUri;
 
@@ -27,20 +27,14 @@ namespace HappyFace.Units
 
         #region Constructors
 
-        public Scraper()
-            : this(Scrape)
-        {
-        }
-
-
         public Scraper(Func<IDocument, ScrapeResponse> transform)
             : this(new TransformBlock<IDocument, ScrapeResponse>(transform))
         {
         }
 
-        public Scraper(IPropagatorBlock<IDocument, ScrapeResponse> inner)
+        public Scraper(IPropagatorBlock<IDocument, ScrapeResponse> inner = null)
         {
-            _inner = inner;
+            _inner = inner ?? new TransformBlock<IDocument, ScrapeResponse>(x => Scrape(x));
         }
 
         #endregion

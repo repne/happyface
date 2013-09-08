@@ -20,7 +20,7 @@ namespace HappyFace.Units
         private readonly IPropagatorBlock<FetchTarget, FetchTarget> _input;
         private readonly IPropagatorBlock<FetchTarget, FetchTarget> _output;
 
-        public bool Filter(FetchTarget target)
+        private bool Filter(FetchTarget target)
         {
             var host = target.Uri.Host;
 

@@ -14,7 +14,7 @@ namespace HappyFace.Units
         private readonly IPropagatorBlock<FetchTarget, FetchResponse> _input;
         private readonly IPropagatorBlock<FetchResponse, FetchResponse> _output;
 
-        public static async Task<FetchResponse> Fetch(FetcherOptions options, FetchTarget target)
+        private static async Task<FetchResponse> Fetch(FetcherOptions options, FetchTarget target)
         {
             var request = WebRequest.CreateHttp(target.Uri);
 
@@ -41,20 +41,14 @@ namespace HappyFace.Units
 
         #region Constructors
 
-        public Fetcher(FetcherOptions options)
-            : this(options, target => Fetch(options, target))
-        {
-        }
-
-
         public Fetcher(FetcherOptions options, Func<FetchTarget, Task<FetchResponse>> transform)
             : this(options, new TransformBlock<FetchTarget, FetchResponse>(transform))
         {
         }
 
-        public Fetcher(FetcherOptions options, IPropagatorBlock<FetchTarget, FetchResponse> input)
+        public Fetcher(FetcherOptions options, IPropagatorBlock<FetchTarget, FetchResponse> input = null)
         {
-            _input = input;
+            _input = input ?? new TransformBlock<FetchTarget, FetchResponse>(x => Fetch(options, x));
             _options = options;
             _output = new BroadcastBlock<FetchResponse>(x => x);
 

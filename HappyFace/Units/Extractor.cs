@@ -11,7 +11,7 @@ namespace HappyFace.Units
     {
         private readonly IPropagatorBlock<IDocument, ExtractResponse> _inner;
 
-        public static ExtractResponse Extract(IDocument document)
+        private static ExtractResponse Extract(IDocument document)
         {
             return new ExtractResponse
             {
@@ -24,19 +24,14 @@ namespace HappyFace.Units
 
         #region Constructors
 
-        public Extractor()
-            : this(Extract)
-        {
-        }
-
         public Extractor(Func<IDocument, ExtractResponse> transform)
             : this(new TransformBlock<IDocument, ExtractResponse>(transform))
         {
         }
 
-        public Extractor(IPropagatorBlock<IDocument, ExtractResponse> inner)
+        public Extractor(IPropagatorBlock<IDocument, ExtractResponse> inner = null)
         {
-            _inner = inner;
+            _inner = inner ?? new TransformBlock<IDocument, ExtractResponse>(x => Extract(x));
         }
 
         #endregion

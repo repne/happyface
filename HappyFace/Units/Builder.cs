@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using HappyFace.Domain;
@@ -48,8 +49,8 @@ namespace HappyFace.Units
             {
                 LastModified = input.Item1.LastModified,
                 ResponseUri = input.Item1.ResponseUri,
-                Paragraphs = input.Item2.Paragraphs,
-                Links = input.Item3.Links
+                Paragraphs = input.Item2.Paragraphs.ToArray(),
+                Links = input.Item3.Links.ToArray()
             };
         }
 

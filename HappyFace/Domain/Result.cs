@@ -7,8 +7,8 @@ namespace HappyFace.Domain
     {
         public DateTime LastModified { get; set; }
         public Uri ResponseUri { get; set; }
-        public IEnumerable<string> Paragraphs { get; set; }
-        public IEnumerable<Uri> Links { get; set; }
+        public string[] Paragraphs { get; set; }
+        public Uri[] Links { get; set; }
 
         public string GetKey()
         {

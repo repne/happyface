@@ -7,7 +7,7 @@ using HappyFace.Html;
 
 namespace HappyFace.Units
 {
-    public class Extractor : IPropagatorBlock<IDocument, ExtractResponse>
+    public sealed class Extractor : IPropagatorBlock<IDocument, ExtractResponse>
     {
         private readonly IPropagatorBlock<IDocument, ExtractResponse> _inner;
 

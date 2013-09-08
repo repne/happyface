@@ -8,7 +8,7 @@ using HappyFace.Html;
 
 namespace HappyFace.Units
 {
-    public class Scraper : IPropagatorBlock<IDocument, ScrapeResponse>
+    public sealed class Scraper : IPropagatorBlock<IDocument, ScrapeResponse>
     {
         private readonly IPropagatorBlock<IDocument, ScrapeResponse> _inner;
 

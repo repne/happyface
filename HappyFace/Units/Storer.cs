@@ -6,7 +6,7 @@ using HappyFace.Domain;
 
 namespace HappyFace.Units
 {
-    public class Storer: IPropagatorBlock<Result, Result>
+    public sealed class Storer : IPropagatorBlock<Result, Result>
     {
         private readonly IKeyValueStore<string, Result> _store;
         private readonly IPropagatorBlock<Result, Result> _inner;

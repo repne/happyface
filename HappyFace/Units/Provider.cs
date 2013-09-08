@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using HappyFace.Data;
 using HappyFace.Domain;
-using HappyFace.Html;
 
 namespace HappyFace.Units
 {

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using HappyFace.Configuration;
 using HappyFace.Data;
 using HappyFace.Domain;

@@ -4,5 +4,6 @@
     {
         TValue Get(TKey key);
         void Set(TKey key, TValue value);
+        bool Exists(TKey key);
     }
 }

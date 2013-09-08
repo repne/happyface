@@ -20,5 +20,10 @@ namespace HappyFace.Data
         {
             _inner.AddOrUpdate(key, value, (k, v) => v);
         }
+
+        public bool Exists(TKey key)
+        {
+            return _inner.ContainsKey(key);
+        }
     }
 }

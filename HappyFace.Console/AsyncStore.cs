@@ -31,6 +31,11 @@ namespace HappyFace.Console
             _collection.Set(key, value);
         }
 
+        public bool Exists(string key)
+        {
+            return _collection.Exists(key);
+        }
+
         public void Dispose()
         {
             _engine.Shutdown();

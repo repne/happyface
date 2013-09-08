@@ -40,7 +40,12 @@ namespace HappyFace.Console
 
             var uri = new Uri("http://www.theguardian.com/world/2013/sep/04/putin-warns-military-action-syria");
 
-            var fetcher = new Fetcher();
+            var fetcherOptions = new FetcherOptions
+            {
+                UserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.62 Safari/537.36"
+            };
+
+            var fetcher = new Fetcher(fetcherOptions);
             var parser = new Parser(documentFactory);
             var scraper = new Scraper();
             var extractor = new Extractor();

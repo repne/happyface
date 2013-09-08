@@ -7,16 +7,22 @@ using HappyFace.Domain;
 
 namespace HappyFace.Units
 {
+    public class FetcherOptions
+    {
+        public string UserAgent { get; set; }
+    }
+
     public sealed class Fetcher : IPropagatorBlock<Uri, FetchResponse>
     {
+        private FetcherOptions _options;
         private readonly IPropagatorBlock<Uri, FetchResponse> _input;
         private readonly IPropagatorBlock<FetchResponse, FetchResponse> _output;
 
-        public static async Task<FetchResponse> Fetch(Uri uri)
+        public static async Task<FetchResponse> Fetch(FetcherOptions options, Uri uri)
         {
             var request = WebRequest.CreateHttp(uri);
 
-            request.UserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.62 Safari/537.36";
+            request.UserAgent = options.UserAgent;
 
             using (var response = (HttpWebResponse)await request.GetResponseAsync())
             {
@@ -38,28 +44,29 @@ namespace HappyFace.Units
 
         #region Constructors
 
-        public Fetcher()
-            : this(Fetch)
+        public Fetcher(FetcherOptions options)
+            : this(options, uri => Fetch(options, uri))
         {
         }
 
 
-        public Fetcher(Func<Uri, Task<FetchResponse>> transform)
-            : this(new TransformBlock<Uri, FetchResponse>(transform))
+        public Fetcher(FetcherOptions options, Func<Uri, Task<FetchResponse>> transform)
+            : this(options, new TransformBlock<Uri, FetchResponse>(transform))
         {
         }
 
-        public Fetcher(IPropagatorBlock<Uri, FetchResponse> input)
+        public Fetcher(FetcherOptions options, IPropagatorBlock<Uri, FetchResponse> input)
         {
             _input = input;
+            _options = options;
             _output = new BroadcastBlock<FetchResponse>(x => x);
 
-            var options = new DataflowLinkOptions
+            var linkOptions = new DataflowLinkOptions
             {
                 PropagateCompletion = true
             };
 
-            _input.LinkTo(_output, options);
+            _input.LinkTo(_output, linkOptions);
         }
 
         #endregion

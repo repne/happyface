@@ -49,10 +49,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\DispatcherOptions.cs" />
+    <Compile Include="Configuration\FetcherOptions.cs" />
     <Compile Include="Domain\ExtractResponse.cs" />
+    <Compile Include="Domain\FetchTarget.cs" />
     <Compile Include="Domain\Result.cs" />
     <Compile Include="Domain\ScrapeResponse.cs" />
     <Compile Include="Units\Builder.cs" />
+    <Compile Include="Units\Dispatcher.cs" />
+    <Compile Include="Units\Provider.cs" />
     <Compile Include="Units\Extractor.cs" />
     <Compile Include="Units\Fetcher.cs" />
     <Compile Include="Domain\FetchResponse.cs" />

@@ -6,10 +6,22 @@ using HappyFace.Domain;
 
 namespace HappyFace.Units
 {
-    public class Builder : ISourceBlock<Result>
+    public sealed class Builder : ISourceBlock<Result>
     {
         private readonly ISourceBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>> _input;
         private readonly IPropagatorBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result> _output;
+
+        public static Result Build(Tuple<FetchResponse, ExtractResponse, ScrapeResponse> input)
+        {
+            return new Result
+            {
+                Level = input.Item1.Level,
+                LastModified = input.Item1.LastModified,
+                ResponseUri = input.Item1.ResponseUri,
+                Paragraphs = input.Item2.Paragraphs.ToArray(),
+                Links = input.Item3.Links.ToArray()
+            };
+        }
 
         private JoinBlock<FetchResponse, ExtractResponse, ScrapeResponse> Input
         {
@@ -41,17 +53,6 @@ namespace HappyFace.Units
             {
                 return Input.Target3;
             }
-        }
-
-        public static Result Build(Tuple<FetchResponse, ExtractResponse, ScrapeResponse> input)
-        {
-            return new Result
-            {
-                LastModified = input.Item1.LastModified,
-                ResponseUri = input.Item1.ResponseUri,
-                Paragraphs = input.Item2.Paragraphs.ToArray(),
-                Links = input.Item3.Links.ToArray()
-            };
         }
 
         #region Constructors

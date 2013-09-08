@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace HappyFace.Domain
 {
     public class Result
     {
+        public int Level { get; set; }
         public DateTime LastModified { get; set; }
         public Uri ResponseUri { get; set; }
         public string[] Paragraphs { get; set; }

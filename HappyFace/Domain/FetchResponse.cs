@@ -5,6 +5,7 @@ namespace HappyFace.Domain
 {
     public class FetchResponse
     {
+        public int Level { get; set; }
         public HttpStatusCode StatusCode { get; set; }
         public Uri ResponseUri { get; set; }
         public DateTime LastModified { get; set; }

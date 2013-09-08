@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using HappyFace.Configuration;
 using HappyFace.Data;
 using HappyFace.Domain;
 using HappyFace.Html;
@@ -34,6 +36,8 @@ namespace HappyFace.Console
             var extractor = new Extractor();
             var storer = new Storer(store);
             var builder = new Builder();
+            var provider = new Provider(store);
+            var dispatcher = new Dispatcher();
 
             var options = new DataflowLinkOptions
             {
@@ -51,15 +55,16 @@ namespace HappyFace.Console
 
             builder.LinkTo(storer, options);
 
-            var sink = new ActionBlock<Result>(x =>
+            storer.LinkTo(provider);
+            provider.LinkTo(dispatcher);
+
+            dispatcher.LinkTo(fetcher);
+
+            dispatcher.Post(new FetchTarget
             {
-                var d = 0;
+                Level = 1,
+                Uri = uri
             });
-
-            storer.LinkTo(sink, options);
-
-            fetcher.Post(uri);
-            fetcher.Complete();
 
             storer.Completion.Wait();
         }

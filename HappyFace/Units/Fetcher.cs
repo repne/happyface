@@ -3,24 +3,20 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using HappyFace.Configuration;
 using HappyFace.Domain;
 
 namespace HappyFace.Units
 {
-    public class FetcherOptions
-    {
-        public string UserAgent { get; set; }
-    }
-
-    public sealed class Fetcher : IPropagatorBlock<Uri, FetchResponse>
+    public sealed class Fetcher : IPropagatorBlock<FetchTarget, FetchResponse>
     {
         private FetcherOptions _options;
-        private readonly IPropagatorBlock<Uri, FetchResponse> _input;
+        private readonly IPropagatorBlock<FetchTarget, FetchResponse> _input;
         private readonly IPropagatorBlock<FetchResponse, FetchResponse> _output;
 
-        public static async Task<FetchResponse> Fetch(FetcherOptions options, Uri uri)
+        public static async Task<FetchResponse> Fetch(FetcherOptions options, FetchTarget target)
         {
-            var request = WebRequest.CreateHttp(uri);
+            var request = WebRequest.CreateHttp(target.Uri);
 
             request.UserAgent = options.UserAgent;
 
@@ -32,6 +28,7 @@ namespace HappyFace.Units
                     {
                         return new FetchResponse
                         {
+                            Level = target.Level,
                             ResponseUri = response.ResponseUri,
                             StatusCode = response.StatusCode,
                             LastModified = response.LastModified,
@@ -45,17 +42,17 @@ namespace HappyFace.Units
         #region Constructors
 
         public Fetcher(FetcherOptions options)
-            : this(options, uri => Fetch(options, uri))
+            : this(options, target => Fetch(options, target))
         {
         }
 
 
-        public Fetcher(FetcherOptions options, Func<Uri, Task<FetchResponse>> transform)
-            : this(options, new TransformBlock<Uri, FetchResponse>(transform))
+        public Fetcher(FetcherOptions options, Func<FetchTarget, Task<FetchResponse>> transform)
+            : this(options, new TransformBlock<FetchTarget, FetchResponse>(transform))
         {
         }
 
-        public Fetcher(FetcherOptions options, IPropagatorBlock<Uri, FetchResponse> input)
+        public Fetcher(FetcherOptions options, IPropagatorBlock<FetchTarget, FetchResponse> input)
         {
             _input = input;
             _options = options;
@@ -95,7 +92,7 @@ namespace HappyFace.Units
 
         #region ITargetBlock
 
-        DataflowMessageStatus ITargetBlock<Uri>.OfferMessage(DataflowMessageHeader messageHeader, Uri messageValue, ISourceBlock<Uri> source,
+        DataflowMessageStatus ITargetBlock<FetchTarget>.OfferMessage(DataflowMessageHeader messageHeader, FetchTarget messageValue, ISourceBlock<FetchTarget> source,
             bool consumeToAccept)
         {
             return _input.OfferMessage(messageHeader, messageValue, source, consumeToAccept);

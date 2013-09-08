@@ -61,7 +61,7 @@
     <Compile Include="Html\IDocument.cs" />
     <Compile Include="Html\IDocumentFactory.cs" />
     <Compile Include="Data\IKeyValueStore.cs" />
-    <Compile Include="Data\KeyValueStore.cs" />
+    <Compile Include="Data\InMemoryStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Units\Parser.cs" />
     <Compile Include="Units\Scraper.cs" />

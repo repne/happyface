@@ -2,11 +2,11 @@
 
 namespace HappyFace.Data
 {
-    public class KeyValueStore<TKey, TValue> : IKeyValueStore<TKey, TValue>
+    public class InMemoryStore<TKey, TValue> : IKeyValueStore<TKey, TValue>
     {
         private readonly ConcurrentDictionary<TKey, TValue> _inner;
 
-        public KeyValueStore()
+        public InMemoryStore()
         {
             _inner = new ConcurrentDictionary<TKey,TValue>();
         }

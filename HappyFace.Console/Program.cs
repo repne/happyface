@@ -2,6 +2,9 @@
 using HappyFace.Data;
 using HappyFace.Domain;
 using HappyFace.Html;
+using HappyFace.Store;
+using HappyFace.Store.Serialization;
+using HappyFace.Store.Storage;
 using HappyFace.Units;
 using System.Threading.Tasks.Dataflow;
 
@@ -10,6 +13,27 @@ namespace HappyFace.Console
     class Program
     {
         static void Main(string[] args)
+        {
+            CrawlerExample();
+            StoreExample();
+        }
+
+        private static void StoreExample()
+        {
+            var serializerFactory = new MsgPckSerializerFactory();
+            var storageFactory = new FileStorageFactory(serializerFactory);
+
+            var engine = new Engine(storageFactory);
+            var collection = engine.GetCollection<string, int>("results");
+
+            collection.Set("a", 1);
+            collection.Set("b", 2);
+            collection.Set("c", 3);
+
+            engine.Shutdown();
+        }
+
+        private static void CrawlerExample()
         {
             var documentFactory = new DocumentFactory();
             var store = new KeyValueStore<string, Result>();

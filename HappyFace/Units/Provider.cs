@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using HappyFace.Configuration;
 using HappyFace.Data;
 using HappyFace.Domain;
 
@@ -49,21 +50,26 @@ namespace HappyFace.Units
 
         #region Constructors
 
-        public Provider(IKeyValueStore<string, Result> store,
+        public Provider(ProviderOptions options,
+                        IKeyValueStore<string, Result> store,
                         IKeyValueStore<string, FetchTarget> frontier,
                         Func<Result, IEnumerable<FetchTarget>> transform)
-            : this(store, frontier, new TransformManyBlock<Result, FetchTarget>(transform))
+            : this(options, store, frontier, new TransformManyBlock<Result, FetchTarget>(transform))
         {
         }
 
-        public Provider(IKeyValueStore<string, Result> store,
+        public Provider(ProviderOptions options,
+                        IKeyValueStore<string, Result> store,
                         IKeyValueStore<string, FetchTarget> frontier,
                         IPropagatorBlock<Result, FetchTarget> inner = null)
         {
             _store = store;
             _frontier = frontier;
 
-            _inner = inner ?? new TransformManyBlock<Result, FetchTarget>(result => Provide(result));
+            _inner = inner ?? new TransformManyBlock<Result, FetchTarget>(result => Provide(result), new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = options.MaxDegreeOfParallelism
+            });
         }
 
         #endregion

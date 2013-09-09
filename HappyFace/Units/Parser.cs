@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using HappyFace.Configuration;
 using HappyFace.Domain;
 using HappyFace.Html;
 
@@ -19,23 +20,27 @@ namespace HappyFace.Units
 
         #region Constructors
 
-        public Parser(IDocumentFactory documentFactory, Func<FetchResponse, IDocument> transform)
-            : this(documentFactory, new TransformBlock<FetchResponse, IDocument>(transform))
+        public Parser(ParserOptions options, IDocumentFactory documentFactory, Func<FetchResponse, IDocument> transform)
+            : this(options, documentFactory, new TransformBlock<FetchResponse, IDocument>(transform))
         {
         }
 
-        public Parser(IDocumentFactory documentFactory, IPropagatorBlock<FetchResponse, IDocument> input = null)
+        public Parser(ParserOptions options, IDocumentFactory documentFactory, IPropagatorBlock<FetchResponse, IDocument> input = null)
         {
-            _input = input ?? new TransformBlock<FetchResponse, IDocument>(response => Parse(documentFactory, response));
+            _input = input ?? new TransformBlock<FetchResponse, IDocument>(response => Parse(documentFactory, response), new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = options.MaxDegreeOfParallelism
+            });
+
             _output = new BroadcastBlock<IDocument>(x => x);
             _documentFactory = documentFactory;
 
-            var options = new DataflowLinkOptions
+            var linkOptions = new DataflowLinkOptions
             {
                 PropagateCompletion=true
             };
 
-            _input.LinkTo(_output, options);
+            _input.LinkTo(_output, linkOptions);
         }
 
         #endregion

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using HappyFace.Configuration;
 using HappyFace.Domain;
 
 namespace HappyFace.Units
@@ -57,26 +58,29 @@ namespace HappyFace.Units
 
         #region Constructors
 
-        public Builder(Func<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result> transform)
-            : this(new TransformBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result>(transform))
+        public Builder(BuilderOptions options, Func<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result> transform)
+            : this(options, new TransformBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result>(transform))
         {
         }
 
-        public Builder(IPropagatorBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result> output = null)
+        public Builder(BuilderOptions options, IPropagatorBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result> output = null)
         {
             _input = new JoinBlock<FetchResponse, ExtractResponse, ScrapeResponse>(new GroupingDataflowBlockOptions
             {
                 Greedy = true
             });
 
-            _output = output ?? new TransformBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result>(x => Build(x));
+            _output = output ?? new TransformBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result>(x => Build(x), new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = options.MaxDegreeOfParallelism
+            });
 
-            var options = new DataflowLinkOptions
+            var linkOptions = new DataflowLinkOptions
             {
                 PropagateCompletion = true
             };
 
-            _input.LinkTo(_output, options);
+            _input.LinkTo(_output, linkOptions);
         }
 
         #endregion

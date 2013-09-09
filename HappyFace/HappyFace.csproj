@@ -49,8 +49,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\BuilderOptions.cs" />
     <Compile Include="Configuration\DispatcherOptions.cs" />
+    <Compile Include="Configuration\ExtractorOptions.cs" />
     <Compile Include="Configuration\FetcherOptions.cs" />
+    <Compile Include="Configuration\ParserOptions.cs" />
+    <Compile Include="Configuration\ProviderOptions.cs" />
+    <Compile Include="Configuration\ScraperOptions.cs" />
+    <Compile Include="Configuration\UnitOptions.cs" />
     <Compile Include="Domain\ExtractResponse.cs" />
     <Compile Include="Domain\FetchTarget.cs" />
     <Compile Include="Domain\Result.cs" />

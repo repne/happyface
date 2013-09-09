@@ -1,6 +1,6 @@
 ﻿namespace HappyFace.Configuration
 {
-    public class FetcherOptions
+    public class FetcherOptions : UnitOptions
     {
         public string UserAgent { get; set; }
     }

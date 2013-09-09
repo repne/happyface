@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks.Dataflow;
+﻿using System;
+using System.Threading.Tasks.Dataflow;
 using HappyFace.Configuration;
 using HappyFace.Data;
 using HappyFace.Domain;
@@ -25,20 +26,58 @@ namespace HappyFace.Console
             _store = store;
             _frontier = frontier;
 
-            var fetcherOptions = new FetcherOptions
-            {
-                UserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.62 Safari/537.36"
-            };
+            const int maxDegreeOfParallelism = 8;
 
             var documentFactory = new DocumentFactory();
 
+            var fetcherOptions = new FetcherOptions
+            {
+                UserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.62 Safari/537.36",
+
+                MaxDegreeOfParallelism = maxDegreeOfParallelism
+            };
+
+            var parserOptions = new ParserOptions
+            {
+                MaxDegreeOfParallelism = maxDegreeOfParallelism
+            };
+
+            var scraperOptions = new ScraperOptions
+            {
+                MaxDegreeOfParallelism = maxDegreeOfParallelism
+            };
+
+            var extractorOptions = new ExtractorOptions
+            {
+                MaxDegreeOfParallelism = maxDegreeOfParallelism
+            };
+
+            //var storerOptions = new StorerOptions
+            //{
+            //};
+
+            var builderOptions = new BuilderOptions
+            {
+                MaxDegreeOfParallelism = maxDegreeOfParallelism
+            };
+
+            var providerOptions = new ProviderOptions
+            {
+                MaxDegreeOfParallelism = maxDegreeOfParallelism
+            };
+
+            //var dispatcherOptions = new DispatcherOptions
+            //{
+            //};
+
+
             Fetcher = new Fetcher(fetcherOptions);
-            Parser = new Parser(documentFactory);
-            Scraper = new Scraper();
-            Extractor = new Extractor();
+            Parser = new Parser(parserOptions, documentFactory);
+            Scraper = new Scraper(scraperOptions);
+            Extractor = new Extractor(extractorOptions);
             Storer = new Storer(store);
-            Builder = new Builder();
-            Provider = new Provider(store, frontier);
+            Builder = new Builder(builderOptions);
+            Provider = new Provider(providerOptions, store, frontier);
             Dispatcher = new Dispatcher();
 
             var options = new DataflowLinkOptions

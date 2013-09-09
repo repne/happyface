@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using HappyFace.Configuration;
 using HappyFace.Domain;
 using HappyFace.Html;
 
@@ -26,14 +27,17 @@ namespace HappyFace.Units
 
         #region Constructors
 
-        public Scraper(Func<IDocument, ScrapeResponse> transform)
-            : this(new TransformBlock<IDocument, ScrapeResponse>(transform))
+        public Scraper(ScraperOptions options, Func<IDocument, ScrapeResponse> transform)
+            : this(options, new TransformBlock<IDocument, ScrapeResponse>(transform))
         {
         }
 
-        public Scraper(IPropagatorBlock<IDocument, ScrapeResponse> inner = null)
+        public Scraper(ScraperOptions options, IPropagatorBlock<IDocument, ScrapeResponse> inner = null)
         {
-            _inner = inner ?? new TransformBlock<IDocument, ScrapeResponse>(x => Scrape(x));
+            _inner = inner ?? new TransformBlock<IDocument, ScrapeResponse>(x => Scrape(x), new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = options.MaxDegreeOfParallelism
+            });
         }
 
         #endregion

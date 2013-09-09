@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using HappyFace.Configuration;
 using HappyFace.Domain;
 using HappyFace.Html;
 
@@ -24,14 +25,17 @@ namespace HappyFace.Units
 
         #region Constructors
 
-        public Extractor(Func<IDocument, ExtractResponse> transform)
-            : this(new TransformBlock<IDocument, ExtractResponse>(transform))
+        public Extractor(ExtractorOptions options, Func<IDocument, ExtractResponse> transform)
+            : this(options, new TransformBlock<IDocument, ExtractResponse>(transform))
         {
         }
 
-        public Extractor(IPropagatorBlock<IDocument, ExtractResponse> inner = null)
+        public Extractor(ExtractorOptions options, IPropagatorBlock<IDocument, ExtractResponse> inner = null)
         {
-            _inner = inner ?? new TransformBlock<IDocument, ExtractResponse>(x => Extract(x));
+            _inner = inner ?? new TransformBlock<IDocument, ExtractResponse>(x => Extract(x), new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = options.MaxDegreeOfParallelism
+            });
         }
 
         #endregion

@@ -53,7 +53,11 @@ namespace HappyFace.Units
 
         public Fetcher(FetcherOptions options, IPropagatorBlock<FetchTarget, FetchResponse> input = null)
         {
-            _input = input ?? new TransformBlock<FetchTarget, FetchResponse>(x => Fetch(options, x));
+            _input = input ?? new TransformBlock<FetchTarget, FetchResponse>(x => Fetch(options, x), new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = options.MaxDegreeOfParallelism
+            });
+
             _options = options;
             _output = new BroadcastBlock<FetchResponse>(x => x);
 

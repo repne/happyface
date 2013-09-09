@@ -40,6 +40,7 @@ namespace HappyFace.Store
         {
             TValue value;
             _dictionary.TryRemove(key, out value);
+            _history.RegisterDelete(key);
         }
 
         public bool Exists(TKey key)

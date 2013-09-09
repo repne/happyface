@@ -25,13 +25,19 @@ namespace HappyFace.Store
             }
         }
 
-        public void Replay(IDictionary<TKey, TValue> dictionary)
+        public void Replay(ConcurrentDictionary<TKey, TValue> dictionary)
         {
             foreach (var item in _inner.Reverse())
             {
                 switch (item.MessageType)
                 {
                     case MessageType.Set:
+                        dictionary[item.Key] = item.Value;
+                        break;
+
+                    case MessageType.Delete:
+                        TValue value;
+                        dictionary.TryRemove(item.Key, out value);
                         dictionary[item.Key] = item.Value;
                         break;
 
@@ -62,6 +68,11 @@ namespace HappyFace.Store
         public void RegisterSet(TKey key, TValue value)
         {
             _inner.Enqueue(new Message<TKey, TValue>(MessageType.Set, key, value));
+        }
+
+        public void RegisterDelete(TKey key)
+        {
+            _inner.Enqueue(new Message<TKey, TValue>(MessageType.Delete, key, default(TValue)));
         }
     }
 }

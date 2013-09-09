@@ -63,7 +63,7 @@ namespace HappyFace.Units
 
             _input.LinkTo(_output, linkOptions, filter ?? Filter);
             _input.LinkTo(buffer, linkOptions);
-            buffer.LinkTo(_input);
+            buffer.LinkTo(_input, linkOptions);
         }
 
         #endregion

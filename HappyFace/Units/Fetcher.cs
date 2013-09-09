@@ -20,27 +20,40 @@ namespace HappyFace.Units
 
             request.UserAgent = options.UserAgent;
 
-            using (var response = (HttpWebResponse)await request.GetResponseAsync())
+            try
             {
-                using (var stream = response.GetResponseStream())
+                using (var response = (HttpWebResponse) await request.GetResponseAsync())
                 {
-                    using (var streamReader = new StreamReader(stream))
+                    using (var stream = response.GetResponseStream())
                     {
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write("[FETCHED]");
-                        Console.ResetColor();
-                        Console.WriteLine(" {0}", target.Uri);
-
-                        return new FetchResponse
+                        using (var streamReader = new StreamReader(stream))
                         {
-                            Level = target.Level,
-                            ResponseUri = response.ResponseUri,
-                            StatusCode = response.StatusCode,
-                            LastModified = response.LastModified,
-                            Content = await streamReader.ReadToEndAsync(),
-                        };
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write("[FETCHED]");
+                            Console.ResetColor();
+                            Console.WriteLine(" {0}", target.Uri);
+
+                            return new FetchResponse
+                            {
+                                Level = target.Level,
+                                ResponseUri = response.ResponseUri,
+                                StatusCode = response.StatusCode,
+                                LastModified = response.LastModified,
+                                Content = await streamReader.ReadToEndAsync(),
+                            };
+                        }
                     }
                 }
+            }
+            catch
+            {
+                return new FetchResponse
+                {
+                    Level = target.Level,
+                    ResponseUri = target.Uri,
+                    StatusCode = 0,
+                    LastModified = DateTime.Now
+                };
             }
         }
 

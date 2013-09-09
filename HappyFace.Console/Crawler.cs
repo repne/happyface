@@ -85,12 +85,12 @@ namespace HappyFace.Console
                 PropagateCompletion = true
             };
 
-            Fetcher.LinkTo(Parser, options);
+            Fetcher.LinkTo(Parser, options, x => x.StatusCode == System.Net.HttpStatusCode.OK);
 
             Parser.LinkTo(Scraper, options);
             Parser.LinkTo(Extractor, options);
 
-            Fetcher.LinkTo(Builder.FetchQueue, options);
+            Fetcher.LinkTo(Builder.FetchQueue, options, x => x.StatusCode == System.Net.HttpStatusCode.OK);
             Scraper.LinkTo(Builder.ScrapeQueue, options);
             Extractor.LinkTo(Builder.ExtractQueue, options);
 

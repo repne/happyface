@@ -1,4 +1,6 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace HappyFace.Data
 {
@@ -21,9 +23,20 @@ namespace HappyFace.Data
             _inner.AddOrUpdate(key, value, (k, v) => v);
         }
 
+        public void Delete(TKey key)
+        {
+            TValue value;
+            _inner.TryRemove(key, out value);
+        }
+
         public bool Exists(TKey key)
         {
             return _inner.ContainsKey(key);
+        }
+
+        public IEnumerable<TValue> GetAll()
+        {
+            return _inner.Select(x => x.Value);
         }
     }
 }

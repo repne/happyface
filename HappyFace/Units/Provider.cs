@@ -11,35 +11,59 @@ namespace HappyFace.Units
     public sealed class Provider : IPropagatorBlock<Result, FetchTarget>
     {
         private readonly IKeyValueStore<string, Result> _store;
+        private readonly IKeyValueStore<string, FetchTarget> _frontier;
         private readonly IPropagatorBlock<Result, FetchTarget> _inner;
 
-        private static IEnumerable<FetchTarget> Provide(IKeyValueStore<string, Result> store, Result result)
+        private IEnumerable<FetchTarget> Provide(Result result)
         {
             if (result.Level == 0)
             {
                 return Enumerable.Empty<FetchTarget>();
             }
 
-            return result.Links
-                         .Where(uri => !store.Exists(uri.ToString()))
-                         .Select(uri => new FetchTarget
+            var newLinks = result.Links
+                                 .Where(uri => !_store.Exists(uri.ToString()))
+                                 .ToList();
+
+            var oldLinks = result.Links
+                                 .Except(newLinks);
+
+            var targets = newLinks.Select(uri => new FetchTarget
             {
                 Level = result.Level - 1,
                 Uri = uri
-            });
+            }).ToList();
+
+            foreach (var target in targets)
+            {
+                _frontier.Set(target.Uri.ToString(), target);
+            }
+
+            foreach (var link in oldLinks)
+            {
+                _frontier.Delete(link.ToString());
+            }
+
+            return targets;
         }
 
         #region Constructors
 
-        public Provider(IKeyValueStore<string, Result> store, Func<Result, IEnumerable<FetchTarget>> transform)
-            : this(store, new TransformManyBlock<Result, FetchTarget>(transform))
+        public Provider(IKeyValueStore<string, Result> store,
+                        IKeyValueStore<string, FetchTarget> frontier,
+                        Func<Result, IEnumerable<FetchTarget>> transform)
+            : this(store, frontier, new TransformManyBlock<Result, FetchTarget>(transform))
         {
         }
 
-        public Provider(IKeyValueStore<string, Result> store, IPropagatorBlock<Result, FetchTarget> inner = null)
+        public Provider(IKeyValueStore<string, Result> store,
+                        IKeyValueStore<string, FetchTarget> frontier,
+                        IPropagatorBlock<Result, FetchTarget> inner = null)
         {
-            _inner = inner ?? new TransformManyBlock<Result, FetchTarget>(result => Provide(store, result));
             _store = store;
+            _frontier = frontier;
+
+            _inner = inner ?? new TransformManyBlock<Result, FetchTarget>(result => Provide(result));
         }
 
         #endregion

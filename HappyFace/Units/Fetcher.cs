@@ -26,6 +26,11 @@ namespace HappyFace.Units
                 {
                     using (var streamReader = new StreamReader(stream))
                     {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.Write("[FETCHED]");
+                        Console.ResetColor();
+                        Console.WriteLine(" {0}", target.Uri);
+
                         return new FetchResponse
                         {
                             Level = target.Level,

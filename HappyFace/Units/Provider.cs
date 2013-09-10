@@ -9,13 +9,9 @@ using HappyFace.Domain;
 
 namespace HappyFace.Units
 {
-    public sealed class Provider : IPropagatorBlock<Result, FetchTarget>
+    public sealed class Provider : IConsumerOf<Result>, IProducerOf<FetchTarget>
     {
-        private readonly IKeyValueStore<string, Result> _store;
-        private readonly IKeyValueStore<string, FetchTarget> _frontier;
-        private readonly IPropagatorBlock<Result, FetchTarget> _inner;
-
-        private IEnumerable<FetchTarget> Provide(Result result)
+        private async Task<IEnumerable<FetchTarget>> Provide(Result result)
         {
             if (result.Level == 0)
             {
@@ -48,84 +44,55 @@ namespace HappyFace.Units
             return targets;
         }
 
+        #region Fields
+
+        private readonly ProviderOptions _options;
+        private readonly IKeyValueStore<string, Result> _store;
+        private readonly IKeyValueStore<string, FetchTarget> _frontier;
+        private readonly IPropagatorBlock<Result, FetchTarget> _inner;
+
+        #endregion
+
         #region Constructors
 
         public Provider(ProviderOptions options,
                         IKeyValueStore<string, Result> store,
                         IKeyValueStore<string, FetchTarget> frontier,
-                        Func<Result, IEnumerable<FetchTarget>> transform)
-            : this(options, store, frontier, new TransformManyBlock<Result, FetchTarget>(transform))
+                        Func<Result, Task<IEnumerable<FetchTarget>>> transform = null)
         {
-        }
-
-        public Provider(ProviderOptions options,
-                        IKeyValueStore<string, Result> store,
-                        IKeyValueStore<string, FetchTarget> frontier,
-                        IPropagatorBlock<Result, FetchTarget> inner = null)
-        {
+            _options = options;
             _store = store;
             _frontier = frontier;
+            transform = transform ?? Provide;
 
-            _inner = inner ?? new TransformManyBlock<Result, FetchTarget>(result => Provide(result), new ExecutionDataflowBlockOptions
+            _inner = new TransformManyBlock<Result, FetchTarget>(transform, new ExecutionDataflowBlockOptions
             {
-                MaxDegreeOfParallelism = options.MaxDegreeOfParallelism
+                MaxDegreeOfParallelism = -1
             });
         }
 
         #endregion
 
-        #region IDataflowBlock
+        #region IConsumerOf
 
-        public void Complete()
-        {
-            _inner.Complete();
-        }
-
-        void IDataflowBlock.Fault(Exception exception)
-        {
-            _inner.Fault(exception);
-        }
-
-        public Task Completion
+        public ITargetBlock<Result> Input
         {
             get
             {
-                return _inner.Completion;
+                return _inner;
             }
         }
 
         #endregion
 
-        #region ITargetBlock
+        #region IProducerOf
 
-        DataflowMessageStatus ITargetBlock<Result>.OfferMessage(DataflowMessageHeader messageHeader, Result messageValue, ISourceBlock<Result> source,
-            bool consumeToAccept)
+        public ISourceBlock<FetchTarget> Output
         {
-            return _inner.OfferMessage(messageHeader, messageValue, source, consumeToAccept);
-        }
-
-        #endregion
-
-        #region ISourceBlock
-
-        public IDisposable LinkTo(ITargetBlock<FetchTarget> target, DataflowLinkOptions linkOptions)
-        {
-            return _inner.LinkTo(target, linkOptions);
-        }
-
-        FetchTarget ISourceBlock<FetchTarget>.ConsumeMessage(DataflowMessageHeader messageHeader, ITargetBlock<FetchTarget> target, out bool messageConsumed)
-        {
-            return _inner.ConsumeMessage(messageHeader, target, out messageConsumed);
-        }
-
-        bool ISourceBlock<FetchTarget>.ReserveMessage(DataflowMessageHeader messageHeader, ITargetBlock<FetchTarget> target)
-        {
-            return _inner.ReserveMessage(messageHeader, target);
-        }
-
-        void ISourceBlock<FetchTarget>.ReleaseReservation(DataflowMessageHeader messageHeader, ITargetBlock<FetchTarget> target)
-        {
-            _inner.ReleaseReservation(messageHeader, target);
+            get
+            {
+                return _inner;
+            }
         }
 
         #endregion

@@ -4,6 +4,6 @@ namespace HappyFace.Html
 {
     public interface IDocumentFactory
     {
-        IDocument Create(FetchResponse response);
+        IDocument Create(FetchResult result);
     }
 }

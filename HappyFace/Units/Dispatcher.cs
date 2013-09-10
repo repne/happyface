@@ -7,15 +7,8 @@ using HappyFace.Domain;
 
 namespace HappyFace.Units
 {
-    public sealed class Dispatcher : IPropagatorBlock<FetchTarget, FetchTarget>
+    public sealed class Dispatcher : IConsumerOf<FetchTarget>, IProducerOf<FetchTarget>
     {
-        private DispatcherOptions _options;
-
-        private readonly ConcurrentDictionary<string, DateTimeOffset> _hosts;
-        
-        private readonly IPropagatorBlock<FetchTarget, FetchTarget> _input;
-        private readonly IPropagatorBlock<FetchTarget, FetchTarget> _output;
-
         private bool Filter(FetchTarget target)
         {
             var host = target.Uri.Host;
@@ -47,10 +40,9 @@ namespace HappyFace.Units
 
         public Dispatcher(DispatcherOptions options = null, Predicate<FetchTarget> filter = null)
         {
-            _hosts = new ConcurrentDictionary<string, DateTimeOffset>();
-
             _options = options;
 
+            _hosts = new ConcurrentDictionary<string, DateTimeOffset>();
             _input = new BufferBlock<FetchTarget>();
             _output = new BufferBlock<FetchTarget>();
 
@@ -68,58 +60,35 @@ namespace HappyFace.Units
 
         #endregion
 
-        #region IDataflowBlock
+        #region Fields
 
-        public void Complete()
-        {
-            _input.Complete();
-        }
+        private readonly DispatcherOptions _options;
+        private readonly ConcurrentDictionary<string, DateTimeOffset> _hosts;
+        private readonly IPropagatorBlock<FetchTarget, FetchTarget> _input;
+        private readonly IPropagatorBlock<FetchTarget, FetchTarget> _output;
 
-        void IDataflowBlock.Fault(Exception exception)
-        {
-            _input.Fault(exception);
-        }
+        #endregion
 
-        public Task Completion
+        #region IConsumerOf
+
+        public ITargetBlock<FetchTarget> Input
         {
             get
             {
-                return _output.Completion;
+                return _input;
             }
         }
 
         #endregion
 
-        #region ITargetBlock
+        #region IProducerOf
 
-        DataflowMessageStatus ITargetBlock<FetchTarget>.OfferMessage(DataflowMessageHeader messageHeader, FetchTarget messageValue, ISourceBlock<FetchTarget> source,
-            bool consumeToAccept)
+        public ISourceBlock<FetchTarget> Output
         {
-            return _input.OfferMessage(messageHeader, messageValue, source, consumeToAccept);
-        }
-
-        #endregion
-
-        #region ISourceBlock
-
-        public IDisposable LinkTo(ITargetBlock<FetchTarget> target, DataflowLinkOptions linkOptions)
-        {
-            return _output.LinkTo(target, linkOptions);
-        }
-
-        FetchTarget ISourceBlock<FetchTarget>.ConsumeMessage(DataflowMessageHeader messageHeader, ITargetBlock<FetchTarget> target, out bool messageConsumed)
-        {
-            return _output.ConsumeMessage(messageHeader, target, out messageConsumed);
-        }
-
-        bool ISourceBlock<FetchTarget>.ReserveMessage(DataflowMessageHeader messageHeader, ITargetBlock<FetchTarget> target)
-        {
-            return _output.ReserveMessage(messageHeader, target);
-        }
-
-        void ISourceBlock<FetchTarget>.ReleaseReservation(DataflowMessageHeader messageHeader, ITargetBlock<FetchTarget> target)
-        {
-            _output.ReleaseReservation(messageHeader, target);
+            get
+            {
+                return _output;
+            }
         }
 
         #endregion

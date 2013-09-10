@@ -8,10 +8,8 @@ using HappyFace.Html;
 
 namespace HappyFace.Units
 {
-    public sealed class Scraper : IPropagatorBlock<IDocument, ScrapeResponse>
+    public sealed class Scraper : IConsumerOf<IDocument>, IProducerOf<ScrapeResult>
     {
-        private readonly IPropagatorBlock<IDocument, ScrapeResponse> _inner;
-
         private static Uri CreateUri(Uri baseUri, Uri relativeUri)
         {
             Uri uri;
@@ -25,11 +23,11 @@ namespace HappyFace.Units
             }
         }
 
-        private static ScrapeResponse Scrape(IDocument document)
+        private async Task<ScrapeResult> Scrape(IDocument document)
         {
             var baseUri = document.BaseUri;
 
-            return new ScrapeResponse
+            return new ScrapeResult
             {
                 Links = document.Links
                                 .Select(x => CreateUri(baseUri, x))
@@ -40,75 +38,46 @@ namespace HappyFace.Units
             };
         }
 
+        #region Fields
+
+        private readonly IPropagatorBlock<IDocument, ScrapeResult> _inner;
+
+        #endregion
+
         #region Constructors
 
-        public Scraper(ScraperOptions options, Func<IDocument, ScrapeResponse> transform)
-            : this(options, new TransformBlock<IDocument, ScrapeResponse>(transform))
+        public Scraper(ScraperOptions options, Func<IDocument, Task<ScrapeResult>> transform = null)
         {
-        }
+            transform = transform ?? Scrape;
 
-        public Scraper(ScraperOptions options, IPropagatorBlock<IDocument, ScrapeResponse> inner = null)
-        {
-            _inner = inner ?? new TransformBlock<IDocument, ScrapeResponse>(x => Scrape(x), new ExecutionDataflowBlockOptions
+            _inner = new TransformBlock<IDocument, ScrapeResult>(transform, new ExecutionDataflowBlockOptions
             {
-                MaxDegreeOfParallelism = options.MaxDegreeOfParallelism
+                MaxDegreeOfParallelism = -1
             });
         }
 
         #endregion
 
-        #region IDataflowBlock
+        #region IConsumerOf
 
-        public void Complete()
-        {
-            _inner.Complete();
-        }
-
-        void IDataflowBlock.Fault(Exception exception)
-        {
-            _inner.Fault(exception);
-        }
-
-        public Task Completion
+        public ITargetBlock<IDocument> Input
         {
             get
             {
-                return _inner.Completion;
+                return _inner;
             }
         }
 
         #endregion
 
-        #region ITargetBlock
+        #region IProducerOf
 
-        DataflowMessageStatus ITargetBlock<IDocument>.OfferMessage(DataflowMessageHeader messageHeader, IDocument messageValue, ISourceBlock<IDocument> source,
-            bool consumeToAccept)
+        public ISourceBlock<ScrapeResult> Output
         {
-            return _inner.OfferMessage(messageHeader, messageValue, source, consumeToAccept);
-        }
-
-        #endregion
-
-        #region ISourceBlock
-
-        public IDisposable LinkTo(ITargetBlock<ScrapeResponse> target, DataflowLinkOptions linkOptions)
-        {
-            return _inner.LinkTo(target, linkOptions);
-        }
-
-        ScrapeResponse ISourceBlock<ScrapeResponse>.ConsumeMessage(DataflowMessageHeader messageHeader, ITargetBlock<ScrapeResponse> target, out bool messageConsumed)
-        {
-            return _inner.ConsumeMessage(messageHeader, target, out messageConsumed);
-        }
-
-        bool ISourceBlock<ScrapeResponse>.ReserveMessage(DataflowMessageHeader messageHeader, ITargetBlock<ScrapeResponse> target)
-        {
-            return _inner.ReserveMessage(messageHeader, target);
-        }
-
-        void ISourceBlock<ScrapeResponse>.ReleaseReservation(DataflowMessageHeader messageHeader, ITargetBlock<ScrapeResponse> target)
-        {
-            _inner.ReleaseReservation(messageHeader, target);
+            get
+            {
+                return _inner;
+            }
         }
 
         #endregion

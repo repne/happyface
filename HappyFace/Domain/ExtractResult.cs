@@ -2,7 +2,7 @@
 
 namespace HappyFace.Domain
 {
-    public class ExtractResponse
+    public class ExtractResult
     {
         public IEnumerable<string> Paragraphs { get; set; }
     }

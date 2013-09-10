@@ -8,32 +8,23 @@ using HappyFace.Domain;
 
 namespace HappyFace.Units
 {
-    public sealed class Fetcher : IPropagatorBlock<FetchTarget, FetchResponse>
+    public sealed class Fetcher : IConsumerOf<FetchTarget>, IProducerOf<FetchResult>
     {
-        private FetcherOptions _options;
-        private readonly IPropagatorBlock<FetchTarget, FetchResponse> _input;
-        private readonly IPropagatorBlock<FetchResponse, FetchResponse> _output;
-
-        private static async Task<FetchResponse> Fetch(FetcherOptions options, FetchTarget target)
+        private async Task<FetchResult> Fetch(FetchTarget target)
         {
             var request = WebRequest.CreateHttp(target.Uri);
 
-            request.UserAgent = options.UserAgent;
+            request.UserAgent = _options.UserAgent;
 
             try
             {
-                using (var response = (HttpWebResponse) await request.GetResponseAsync())
+                using (var response = (HttpWebResponse)await request.GetResponseAsync())
                 {
                     using (var stream = response.GetResponseStream())
                     {
                         using (var streamReader = new StreamReader(stream))
                         {
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.Write("[FETCHED]");
-                            Console.ResetColor();
-                            Console.WriteLine(" {0}", target.Uri);
-
-                            return new FetchResponse
+                            return new FetchResult
                             {
                                 Level = target.Level,
                                 ResponseUri = response.ResponseUri,
@@ -47,7 +38,7 @@ namespace HappyFace.Units
             }
             catch
             {
-                return new FetchResponse
+                return new FetchResult
                 {
                     Level = target.Level,
                     ResponseUri = target.Uri,
@@ -57,22 +48,27 @@ namespace HappyFace.Units
             }
         }
 
+        #region Fields
+
+        private readonly FetcherOptions _options;
+        private readonly IPropagatorBlock<FetchTarget, FetchResult> _input;
+        private readonly IPropagatorBlock<FetchResult, FetchResult> _output;
+
+        #endregion
+
         #region Constructors
 
-        public Fetcher(FetcherOptions options, Func<FetchTarget, Task<FetchResponse>> transform)
-            : this(options, new TransformBlock<FetchTarget, FetchResponse>(transform))
+        public Fetcher(FetcherOptions options, Func<FetchTarget, Task<FetchResult>> transform = null)
         {
-        }
+            _options = options;
+            transform = transform ?? Fetch;
 
-        public Fetcher(FetcherOptions options, IPropagatorBlock<FetchTarget, FetchResponse> input = null)
-        {
-            _input = input ?? new TransformBlock<FetchTarget, FetchResponse>(x => Fetch(options, x), new ExecutionDataflowBlockOptions
+            _input = new TransformBlock<FetchTarget, FetchResult>(transform, new ExecutionDataflowBlockOptions
             {
-                MaxDegreeOfParallelism = options.MaxDegreeOfParallelism
+                MaxDegreeOfParallelism = -1
             });
 
-            _options = options;
-            _output = new BroadcastBlock<FetchResponse>(x => x);
+            _output = new BroadcastBlock<FetchResult>(x => x);
 
             var linkOptions = new DataflowLinkOptions
             {
@@ -84,58 +80,26 @@ namespace HappyFace.Units
 
         #endregion
 
-        #region IDataflowBlock
+        #region IConsumerOf
 
-        public void Complete()
-        {
-            _input.Complete();
-        }
-
-        void IDataflowBlock.Fault(Exception exception)
-        {
-            _input.Fault(exception);
-        }
-
-        public Task Completion
+        public ITargetBlock<FetchTarget> Input
         {
             get
             {
-                return _output.Completion;
+                return _input;
             }
         }
 
         #endregion
 
-        #region ITargetBlock
+        #region IProducerOf
 
-        DataflowMessageStatus ITargetBlock<FetchTarget>.OfferMessage(DataflowMessageHeader messageHeader, FetchTarget messageValue, ISourceBlock<FetchTarget> source,
-            bool consumeToAccept)
+        public ISourceBlock<FetchResult> Output
         {
-            return _input.OfferMessage(messageHeader, messageValue, source, consumeToAccept);
-        }
-
-        #endregion
-
-        #region ISourceBlock
-
-        public IDisposable LinkTo(ITargetBlock<FetchResponse> target, DataflowLinkOptions linkOptions)
-        {
-            return _output.LinkTo(target, linkOptions);
-        }
-
-        FetchResponse ISourceBlock<FetchResponse>.ConsumeMessage(DataflowMessageHeader messageHeader, ITargetBlock<FetchResponse> target, out bool messageConsumed)
-        {
-            return _output.ConsumeMessage(messageHeader, target, out messageConsumed);
-        }
-
-        bool ISourceBlock<FetchResponse>.ReserveMessage(DataflowMessageHeader messageHeader, ITargetBlock<FetchResponse> target)
-        {
-            return _output.ReserveMessage(messageHeader, target);
-        }
-
-        void ISourceBlock<FetchResponse>.ReleaseReservation(DataflowMessageHeader messageHeader, ITargetBlock<FetchResponse> target)
-        {
-            _output.ReleaseReservation(messageHeader, target);
+            get
+            {
+                return _output;
+            }
         }
 
         #endregion

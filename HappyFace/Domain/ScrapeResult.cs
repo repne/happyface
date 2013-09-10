@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace HappyFace.Domain
 {
-    public class ScrapeResponse
+    public class ScrapeResult
     {
         public IEnumerable<Uri> Links { get; set; }
     }

@@ -2,6 +2,5 @@
 {
     public class UnitOptions
     {
-        public int MaxDegreeOfParallelism { get; set; }
     }
 }

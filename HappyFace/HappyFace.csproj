@@ -57,16 +57,19 @@
     <Compile Include="Configuration\ProviderOptions.cs" />
     <Compile Include="Configuration\ScraperOptions.cs" />
     <Compile Include="Configuration\UnitOptions.cs" />
-    <Compile Include="Domain\ExtractResponse.cs" />
+    <Compile Include="Crawler.cs" />
+    <Compile Include="Domain\ExtractResult.cs" />
     <Compile Include="Domain\FetchTarget.cs" />
     <Compile Include="Domain\Result.cs" />
-    <Compile Include="Domain\ScrapeResponse.cs" />
+    <Compile Include="Domain\ScrapeResult.cs" />
     <Compile Include="Units\Builder.cs" />
     <Compile Include="Units\Dispatcher.cs" />
+    <Compile Include="Units\IConsumerOf.cs" />
+    <Compile Include="Units\IProducerOf.cs" />
     <Compile Include="Units\Provider.cs" />
     <Compile Include="Units\Extractor.cs" />
     <Compile Include="Units\Fetcher.cs" />
-    <Compile Include="Domain\FetchResponse.cs" />
+    <Compile Include="Domain\FetchResult.cs" />
     <Compile Include="Html\Document.cs" />
     <Compile Include="Html\DocumentFactory.cs" />
     <Compile Include="Html\IDocument.cs" />
@@ -77,6 +80,7 @@
     <Compile Include="Units\Parser.cs" />
     <Compile Include="Units\Scraper.cs" />
     <Compile Include="Units\Storer.cs" />
+    <Compile Include="Units\Unit.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

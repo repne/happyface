@@ -4,9 +4,9 @@ namespace HappyFace.Html
 {
     public class DocumentFactory : IDocumentFactory
     {
-        public IDocument Create(FetchResponse response)
+        public IDocument Create(FetchResult result)
         {
-            return new Document(response);
+            return new Document(result);
         }
     }
 }

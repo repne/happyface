@@ -7,12 +7,12 @@ using HappyFace.Domain;
 
 namespace HappyFace.Units
 {
-    public sealed class Builder : ISourceBlock<Result>
+    public sealed class Builder : IConsumerOf<FetchResult>,
+                                  IConsumerOf<ExtractResult>,
+                                  IConsumerOf<ScrapeResult>,
+                                  IProducerOf<Result>
     {
-        private readonly ISourceBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>> _input;
-        private readonly IPropagatorBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result> _output;
-
-        private static Result Build(Tuple<FetchResponse, ExtractResponse, ScrapeResponse> input)
+        private static Result Build(Tuple<FetchResult, ExtractResult, ScrapeResult> input)
         {
             return new Result
             {
@@ -24,55 +24,27 @@ namespace HappyFace.Units
             };
         }
 
-        private JoinBlock<FetchResponse, ExtractResponse, ScrapeResponse> Input
-        {
-            get
-            {
-                return (JoinBlock<FetchResponse, ExtractResponse, ScrapeResponse>) _input;
-            }
-        }
+        #region Fields
 
-        public ITargetBlock<FetchResponse> FetchQueue
-        {
-            get
-            {
-                return Input.Target1;
-            }
-        }
+        private readonly ISourceBlock<Tuple<FetchResult, ExtractResult, ScrapeResult>> _input;
+        private readonly IPropagatorBlock<Tuple<FetchResult, ExtractResult, ScrapeResult>, Result> _output;
 
-        public ITargetBlock<ExtractResponse> ExtractQueue
-        {
-            get
-            {
-                return Input.Target2;
-            }
-        }
-
-        public ITargetBlock<ScrapeResponse> ScrapeQueue
-        {
-            get
-            {
-                return Input.Target3;
-            }
-        }
+        #endregion
 
         #region Constructors
 
-        public Builder(BuilderOptions options, Func<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result> transform)
-            : this(options, new TransformBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result>(transform))
+        public Builder(BuilderOptions options, Func<Tuple<FetchResult, ExtractResult, ScrapeResult>, Result> transform = null)
         {
-        }
+            transform = transform ?? Build;
 
-        public Builder(BuilderOptions options, IPropagatorBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result> output = null)
-        {
-            _input = new JoinBlock<FetchResponse, ExtractResponse, ScrapeResponse>(new GroupingDataflowBlockOptions
+            _input = new JoinBlock<FetchResult, ExtractResult, ScrapeResult>(new GroupingDataflowBlockOptions
             {
                 Greedy = true
             });
 
-            _output = output ?? new TransformBlock<Tuple<FetchResponse, ExtractResponse, ScrapeResponse>, Result>(x => Build(x), new ExecutionDataflowBlockOptions
+            _output = new TransformBlock<Tuple<FetchResult, ExtractResult, ScrapeResult>, Result>(transform, new ExecutionDataflowBlockOptions
             {
-                MaxDegreeOfParallelism = options.MaxDegreeOfParallelism
+                MaxDegreeOfParallelism = -1
             });
 
             var linkOptions = new DataflowLinkOptions
@@ -85,48 +57,50 @@ namespace HappyFace.Units
 
         #endregion
 
-        #region IDataflowBlock
+        #region IConsumerOf
 
-        public void Complete()
-        {
-            _input.Complete();
-        }
-
-        void IDataflowBlock.Fault(Exception exception)
-        {
-            _input.Fault(exception);
-        }
-
-        public Task Completion
+        private JoinBlock<FetchResult, ExtractResult, ScrapeResult> Input
         {
             get
             {
-                return _output.Completion;
+                return (JoinBlock<FetchResult, ExtractResult, ScrapeResult>) _input;
+            }
+        }
+        
+        ITargetBlock<FetchResult> IConsumerOf<FetchResult>.Input
+        {
+            get
+            {
+                return Input.Target1;
+            }
+        }
+
+        ITargetBlock<ExtractResult> IConsumerOf<ExtractResult>.Input
+        {
+            get
+            {
+                return Input.Target2;
+            }
+        }
+
+        ITargetBlock<ScrapeResult> IConsumerOf<ScrapeResult>.Input
+        {
+            get
+            {
+                return Input.Target3;
             }
         }
 
         #endregion
 
-        #region ISourceBlock
+        #region IProducerOf
 
-        public IDisposable LinkTo(ITargetBlock<Result> target, DataflowLinkOptions linkOptions)
+        public ISourceBlock<Result> Output
         {
-            return _output.LinkTo(target, linkOptions);
-        }
-
-        Result ISourceBlock<Result>.ConsumeMessage(DataflowMessageHeader messageHeader, ITargetBlock<Result> target, out bool messageConsumed)
-        {
-            return _output.ConsumeMessage(messageHeader, target, out messageConsumed);
-        }
-
-        bool ISourceBlock<Result>.ReserveMessage(DataflowMessageHeader messageHeader, ITargetBlock<Result> target)
-        {
-            return _output.ReserveMessage(messageHeader, target);
-        }
-
-        void ISourceBlock<Result>.ReleaseReservation(DataflowMessageHeader messageHeader, ITargetBlock<Result> target)
-        {
-            _output.ReleaseReservation(messageHeader, target);
+            get
+            {
+                return _output;
+            }
         }
 
         #endregion

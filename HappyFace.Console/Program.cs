@@ -14,13 +14,20 @@ namespace HappyFace.Console
             using (_store = new AsyncStore<Result>("results"))
             using (_frontier = new AsyncStore<FetchTarget>("frontier"))
             {
-                const string seed = "http://www.theguardian.com/world/2013/sep/04/putin-warns-military-action-syria";
-
-                _frontier.Set(seed, new FetchTarget
+                var seeds = new[]
                 {
-                    Level = 1,
-                    Uri = new Uri(seed)
-                });
+                    "http://www.theguardian.com/",
+                    "http://www.reddit.com"
+                };
+
+                foreach (var seed in seeds)
+                {
+                    _frontier.Set(seed, new FetchTarget
+                    {
+                        Level = 1,
+                        Uri = new Uri(seed)
+                    });
+                }
 
                 var crawler = Crawler.Create(_store, _frontier);
 
@@ -30,7 +37,7 @@ namespace HappyFace.Console
             }
         }
 
-        [DllImport("Kernel32")]
+        [DllImport("Kernel32", SetLastError = true)]
         private static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
 
         private delegate bool EventHandler(CtrlType sig);

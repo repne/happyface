@@ -3,7 +3,7 @@ using System.Net;
 
 namespace HappyFace.Domain
 {
-    public class FetchResponse
+    public class FetchResult
     {
         public int Level { get; set; }
         public HttpStatusCode StatusCode { get; set; }

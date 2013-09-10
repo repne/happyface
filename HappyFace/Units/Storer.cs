@@ -6,84 +6,48 @@ using HappyFace.Domain;
 
 namespace HappyFace.Units
 {
-    public sealed class Storer : IPropagatorBlock<Result, Result>
+    public sealed class Storer : IConsumerOf<Result>, IProducerOf<Result>
     {
         private readonly IKeyValueStore<string, Result> _store;
         private readonly IPropagatorBlock<Result, Result> _inner;
 
-        private static Result Store(IKeyValueStore<string, Result> store, Result result)
+        private Result Store(Result result)
         {
-            store.Set(result.GetKey(), result);
+            _store.Set(result.GetKey(), result);
             return result;
         }
 
         #region Constructors
 
-        public Storer(IKeyValueStore<string, Result> store, Func<Result, Result> transform)
-            : this(store, new BroadcastBlock<Result>(transform))
-        {
-        }
-
-        public Storer(IKeyValueStore<string, Result> store, IPropagatorBlock<Result, Result> inner = null)
+        public Storer(IKeyValueStore<string, Result> store, Func<Result, Result> transform = null)
         {
             _store = store;
-            _inner = inner ?? new BroadcastBlock<Result>(result => Store(store, result));
+            transform = transform ?? Store;
+            _inner = new BroadcastBlock<Result>(transform);
         }
 
         #endregion
 
-        #region IDataflowBlock
+        #region IConsumerOf
 
-        public void Complete()
-        {
-            _inner.Complete();
-        }
-
-        void IDataflowBlock.Fault(Exception exception)
-        {
-            _inner.Fault(exception);
-        }
-
-        public Task Completion
+        public ITargetBlock<Result> Input
         {
             get
             {
-                return _inner.Completion;
+                return _inner;
             }
         }
 
         #endregion
 
-        #region ITargetBlock
+        #region IProducerOf
 
-        DataflowMessageStatus ITargetBlock<Result>.OfferMessage(DataflowMessageHeader messageHeader, Result messageValue, ISourceBlock<Result> source,
-            bool consumeToAccept)
+        public ISourceBlock<Result> Output
         {
-            return _inner.OfferMessage(messageHeader, messageValue, source, consumeToAccept);
-        }
-
-        #endregion
-
-        #region ISourceBlock
-
-        public IDisposable LinkTo(ITargetBlock<Result> target, DataflowLinkOptions linkOptions)
-        {
-            return _inner.LinkTo(target, linkOptions);
-        }
-
-        Result ISourceBlock<Result>.ConsumeMessage(DataflowMessageHeader messageHeader, ITargetBlock<Result> target, out bool messageConsumed)
-        {
-            return _inner.ConsumeMessage(messageHeader, target, out messageConsumed);
-        }
-
-        bool ISourceBlock<Result>.ReserveMessage(DataflowMessageHeader messageHeader, ITargetBlock<Result> target)
-        {
-            return _inner.ReserveMessage(messageHeader, target);
-        }
-
-        void ISourceBlock<Result>.ReleaseReservation(DataflowMessageHeader messageHeader, ITargetBlock<Result> target)
-        {
-            _inner.ReleaseReservation(messageHeader, target);
+            get
+            {
+                return _inner;
+            }
         }
 
         #endregion

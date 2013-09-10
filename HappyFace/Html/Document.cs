@@ -8,18 +8,18 @@ namespace HappyFace.Html
 {
     public class Document : IDocument
     {
-        public Document(FetchResponse response)
+        public Document(FetchResult result)
         {
-            _response = response;
+            _result = result;
             _document = new HtmlDocument();
-            _document.LoadHtml(response.Content);
+            _document.LoadHtml(result.Content);
 
             _baseUri = new Lazy<Uri>(GetBaseUri);
         }
 
         private readonly HtmlDocument _document;
         private readonly Lazy<Uri> _baseUri;
-        private readonly FetchResponse _response;
+        private readonly FetchResult _result;
 
         public Uri BaseUri
         {
@@ -48,7 +48,7 @@ namespace HappyFace.Html
                     }
                 }
             }
-            return _response.ResponseUri;
+            return _result.ResponseUri;
         }
 
         public IEnumerable<Uri> Links

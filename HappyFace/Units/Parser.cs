@@ -7,33 +7,36 @@ using HappyFace.Html;
 
 namespace HappyFace.Units
 {
-    public sealed class Parser : IPropagatorBlock<FetchResponse, IDocument>
+    public sealed class Parser : IConsumerOf<FetchResult>, IProducerOf<IDocument>
     {
-        private readonly IDocumentFactory _documentFactory;
-        private readonly IPropagatorBlock<FetchResponse, IDocument> _input;
-        private readonly IPropagatorBlock<IDocument, IDocument> _output;
-
-        private static IDocument Parse(IDocumentFactory documentFactory, FetchResponse response)
+        private async Task<IDocument> Parse(FetchResult result)
         {
-            return documentFactory.Create(response);
+            return _documentFactory.Create(result);
         }
+
+        #region Fields
+        
+        private readonly IDocumentFactory _documentFactory;
+        private readonly IPropagatorBlock<FetchResult, IDocument> _input;
+        private readonly IPropagatorBlock<IDocument, IDocument> _output;
+        private readonly ParserOptions _options;
+
+        #endregion
 
         #region Constructors
 
-        public Parser(ParserOptions options, IDocumentFactory documentFactory, Func<FetchResponse, IDocument> transform)
-            : this(options, documentFactory, new TransformBlock<FetchResponse, IDocument>(transform))
+        public Parser(ParserOptions options, IDocumentFactory documentFactory, Func<FetchResult, Task<IDocument>> transform = null)
         {
-        }
+            _options = options;
+            _documentFactory = documentFactory;
+            transform = transform ?? Parse;
 
-        public Parser(ParserOptions options, IDocumentFactory documentFactory, IPropagatorBlock<FetchResponse, IDocument> input = null)
-        {
-            _input = input ?? new TransformBlock<FetchResponse, IDocument>(response => Parse(documentFactory, response), new ExecutionDataflowBlockOptions
+            _input = new TransformBlock<FetchResult, IDocument>(transform, new ExecutionDataflowBlockOptions
             {
-                MaxDegreeOfParallelism = options.MaxDegreeOfParallelism
+                MaxDegreeOfParallelism = -1
             });
 
             _output = new BroadcastBlock<IDocument>(x => x);
-            _documentFactory = documentFactory;
 
             var linkOptions = new DataflowLinkOptions
             {
@@ -45,58 +48,26 @@ namespace HappyFace.Units
 
         #endregion
 
-        #region IDataflowBlock
+        #region IConsumerOf
 
-        public void Complete()
-        {
-            _input.Complete();
-        }
-
-        void IDataflowBlock.Fault(Exception exception)
-        {
-            _input.Fault(exception);
-        }
-
-        public Task Completion
+        public ITargetBlock<FetchResult> Input
         {
             get
             {
-                return _output.Completion;
+                return _input;
             }
         }
 
         #endregion
 
-        #region ITargetBlock
+        #region IProducerOf
 
-        DataflowMessageStatus ITargetBlock<FetchResponse>.OfferMessage(DataflowMessageHeader messageHeader, FetchResponse messageValue, ISourceBlock<FetchResponse> source,
-            bool consumeToAccept)
+        public ISourceBlock<IDocument> Output
         {
-            return _input.OfferMessage(messageHeader, messageValue, source, consumeToAccept);
-        }
-
-        #endregion
-
-        #region ISourceBlock
-
-        public IDisposable LinkTo(ITargetBlock<IDocument> target, DataflowLinkOptions linkOptions)
-        {
-            return _output.LinkTo(target, linkOptions);
-        }
-
-        IDocument ISourceBlock<IDocument>.ConsumeMessage(DataflowMessageHeader messageHeader, ITargetBlock<IDocument> target, out bool messageConsumed)
-        {
-            return _output.ConsumeMessage(messageHeader, target, out messageConsumed);
-        }
-
-        bool ISourceBlock<IDocument>.ReserveMessage(DataflowMessageHeader messageHeader, ITargetBlock<IDocument> target)
-        {
-            return _output.ReserveMessage(messageHeader, target);
-        }
-
-        void ISourceBlock<IDocument>.ReleaseReservation(DataflowMessageHeader messageHeader, ITargetBlock<IDocument> target)
-        {
-            _output.ReleaseReservation(messageHeader, target);
+            get
+            {
+                return _output;
+            }
         }
 
         #endregion

@@ -19,7 +19,7 @@ namespace HappyFace.Console
                 {
                     "http://www.microsoft.com",
                     "http://www.theguardian.com/",
-                    "http://www.reddit.com"
+                    "http://www.reddit.com",
                 };
 
                 foreach (var seed in seeds)
@@ -33,7 +33,7 @@ namespace HappyFace.Console
 
                 var listener = new Listener<FetchResult>(x => System.Console.WriteLine("[FETCHED]: {0}", x.ResponseUri));
 
-                var crawler = Crawler.Get(_store, _frontier);
+                var crawler = Crawler.Get(new HtmlAgilityPack.DocumentFactory(), _store, _frontier);
 
                 crawler.Fetcher.SendTo(listener);
 

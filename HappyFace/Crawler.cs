@@ -23,12 +23,10 @@ namespace HappyFace
         public Provider Provider { get; private set; }
         public Dispatcher Dispatcher { get; private set; }
 
-        protected Crawler(IKeyValueStore<string, Result> store, IKeyValueStore<string, FetchTarget> frontier)
+        protected Crawler(IDocumentFactory documentFactory, IKeyValueStore<string, Result> store, IKeyValueStore<string, FetchTarget> frontier)
         {
             _store = store;
             _frontier = frontier;
-
-            var documentFactory = new DocumentFactory();
 
             var fetcherOptions = new FetcherOptions
             {
@@ -93,9 +91,9 @@ namespace HappyFace
             Dispatcher.SendTo(Fetcher);
         }
 
-        public static Crawler Get(IKeyValueStore<string, Result> store, IKeyValueStore<string, FetchTarget> frontier)
+        public static Crawler Get(IDocumentFactory documentFactory, IKeyValueStore<string, Result> store, IKeyValueStore<string, FetchTarget> frontier)
         {
-            return new Crawler(store, frontier);
+            return new Crawler(documentFactory, store, frontier);
         }
 
         public void Start()

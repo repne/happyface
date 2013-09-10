@@ -1,6 +1,7 @@
 ﻿using HappyFace.Domain;
+using HappyFace.Html;
 
-namespace HappyFace.Html
+namespace HappyFace.HtmlAgilityPack
 {
     public class DocumentFactory : IDocumentFactory
     {

@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using HappyFace.Domain;
+using HappyFace.Html;
 using HtmlAgilityPack;
 
-namespace HappyFace.Html
+namespace HappyFace.HtmlAgilityPack
 {
     public class Document : IDocument
     {

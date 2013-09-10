@@ -13,7 +13,7 @@ namespace HappyFace.Units
         {
             var host = target.Uri.Host;
 
-            var now = DateTimeOffset.Now;
+            var now = DateTimeOffset.UtcNow;
 
             DateTimeOffset lastRetrievalTime;
 

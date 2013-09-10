@@ -28,7 +28,7 @@ namespace HappyFace.Store.Tasks
 
                 await action(now, cancellationToken);
 
-                _inner.Post(DateTimeOffset.Now);
+                _inner.Post(DateTimeOffset.UtcNow);
             },
             new ExecutionDataflowBlockOptions
             {
@@ -38,12 +38,12 @@ namespace HappyFace.Store.Tasks
 
         public void Start()
         {
-            _inner.Post(DateTimeOffset.Now);
+            _inner.Post(DateTimeOffset.UtcNow);
         }
 
         public void Stop()
         {
-            _inner.Post(DateTimeOffset.Now);
+            _inner.Post(DateTimeOffset.UtcNow);
             _inner.Complete();
             _inner.Completion.Wait();
         }

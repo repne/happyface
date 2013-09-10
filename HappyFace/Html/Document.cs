@@ -40,7 +40,11 @@ namespace HappyFace.Html
                     var baseHref = baseElement.GetAttributeValue("href", String.Empty);
                     if (!String.IsNullOrWhiteSpace(baseHref))
                     {
-                        return new Uri(baseHref, UriKind.Absolute);
+                        Uri uri;
+                        if (Uri.TryCreate(baseHref, UriKind.Absolute, out uri))
+                        {
+                            return uri;
+                        }
                     }
                 }
             }
@@ -51,14 +55,25 @@ namespace HappyFace.Html
         {
             get
             {
-                return _document.DocumentNode
-                                .SelectSingleNode("//body")
-                                .SelectNodes("//a[@href]")
-                                .Select(link => link.GetAttributeValue("href", String.Empty))
-                                .Where(x => !String.IsNullOrWhiteSpace(x))
-                                .Where(x => Uri.IsWellFormedUriString(x, UriKind.RelativeOrAbsolute))
-                                .Distinct()
-                                .Select(x => new Uri(x, UriKind.RelativeOrAbsolute));
+                if (_document == null || _document.DocumentNode == null)
+                {
+                    return Enumerable.Empty<Uri>();
+                }
+
+                var documentNode = _document.DocumentNode;
+                var body = documentNode.SelectSingleNode("//body");
+                var links = (body ?? documentNode).SelectNodes("//a[@href]");
+
+                if (links == null)
+                {
+                    return Enumerable.Empty<Uri>();
+                }
+
+                return links.Select(link => link.GetAttributeValue("href", String.Empty))
+                            .Where(x => !String.IsNullOrWhiteSpace(x))
+                            .Where(x => Uri.IsWellFormedUriString(x, UriKind.RelativeOrAbsolute))
+                            .Distinct()
+                            .Select(x => new Uri(x, UriKind.RelativeOrAbsolute));
             }
         }
 
@@ -66,11 +81,31 @@ namespace HappyFace.Html
         {
             get
             {
-                return _document.DocumentNode
-                                .SelectSingleNode("//body")
-                                .Descendants("p")
-                                .Select(x => HtmlEntity.DeEntitize(x.InnerText))
-                                .Select(x => x.Trim());
+                if (_document == null || _document.DocumentNode == null)
+                {
+                    return Enumerable.Empty<string>();
+                }
+
+                var documentNode = _document.DocumentNode;
+                var root = documentNode.SelectSingleNode("//body") ?? documentNode;
+
+                return root.Descendants("p")
+                           .Select(DeEntitize)
+                           .Select(x => x.Trim())
+                           .Where(x => !String.IsNullOrEmpty(x));
+
+            }
+        }
+
+        private static string DeEntitize(HtmlNode x)
+        {
+            try
+            {
+                return HtmlEntity.DeEntitize(x.InnerText);
+            }
+            catch
+            {
+                return String.Empty;
             }
         }
     }

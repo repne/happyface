@@ -12,13 +12,28 @@ namespace HappyFace.Units
     {
         private readonly IPropagatorBlock<IDocument, ScrapeResponse> _inner;
 
+        private static Uri CreateUri(Uri baseUri, Uri relativeUri)
+        {
+            Uri uri;
+            if (Uri.TryCreate(baseUri, relativeUri, out uri))
+            {
+                return uri;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         private static ScrapeResponse Scrape(IDocument document)
         {
             var baseUri = document.BaseUri;
 
             return new ScrapeResponse
             {
-                Links = document.Links.Select(x => new Uri(baseUri, x))
+                Links = document.Links
+                                .Select(x => CreateUri(baseUri, x))
+                                .Where(x => x != null)
                                 .Where(x => x.Scheme == "http" || x.Scheme == "https")
                                 .Where(x => x.Host == baseUri.Host)
                                 .ToList()

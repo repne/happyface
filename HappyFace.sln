@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{58CB21
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HappyFace.Store", "HappyFace.Store\HappyFace.Store.csproj", "{E2A74F99-E991-49A5-981A-723A88145D19}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HappyFace.HtmlAgilityPack", "HappyFace.HtmlAgilityPack\HappyFace.HtmlAgilityPack.csproj", "{8E1B8833-C438-4964-A14B-E0CC7187927D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,8 +34,15 @@ Global
 		{E2A74F99-E991-49A5-981A-723A88145D19}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2A74F99-E991-49A5-981A-723A88145D19}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2A74F99-E991-49A5-981A-723A88145D19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E1B8833-C438-4964-A14B-E0CC7187927D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E1B8833-C438-4964-A14B-E0CC7187927D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E1B8833-C438-4964-A14B-E0CC7187927D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E1B8833-C438-4964-A14B-E0CC7187927D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

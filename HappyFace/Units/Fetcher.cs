@@ -43,7 +43,7 @@ namespace HappyFace.Units
                     Level = target.Level,
                     ResponseUri = target.Uri,
                     StatusCode = 0,
-                    LastModified = DateTime.Now
+                    LastModified = DateTime.UtcNow
                 };
             }
         }

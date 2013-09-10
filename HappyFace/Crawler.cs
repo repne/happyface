@@ -100,7 +100,8 @@ namespace HappyFace
 
         public void Start()
         {
-            Fetcher.Init(_frontier.GetAll());
+            //TODO: Link this to the provider instead!!
+            Dispatcher.Init(_frontier.GetAll());
 
             Fetcher.Output.Completion.Wait();
             Storer.Input.Completion.Wait();

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using HappyFace.Domain;
+using HappyFace.Units;
 
 namespace HappyFace.Console
 {
@@ -16,6 +17,7 @@ namespace HappyFace.Console
             {
                 var seeds = new[]
                 {
+                    "http://www.microsoft.com",
                     "http://www.theguardian.com/",
                     "http://www.reddit.com"
                 };
@@ -29,9 +31,13 @@ namespace HappyFace.Console
                     });
                 }
 
-                var crawler = Crawler.Create(_store, _frontier);
+                var listener = new Listener<FetchResult>(x => System.Console.WriteLine("[FETCHED]: {0}", x.ResponseUri));
 
-                SetConsoleCtrlHandler((x) => Handler(crawler, x), true);
+                var crawler = Crawler.Get(_store, _frontier);
+
+                crawler.Fetcher.SendTo(listener);
+
+                SetConsoleCtrlHandler(x => Handler(crawler, x), true);
 
                 crawler.Start();
             }

@@ -4,18 +4,17 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{DBDBCF9F-E7EF-493C-A2F5-F66531259B38}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{548E80FB-B9C5-4C1C-A980-C552AC6BF5D4}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>HappyFace.Console</RootNamespace>
-    <AssemblyName>HappyFace.Console</AssemblyName>
+    <RootNamespace>HappyFace.CsQuery</RootNamespace>
+    <AssemblyName>HappyFace.CsQuery</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -25,7 +24,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -34,36 +32,26 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CsQuery">
+      <HintPath>..\packages\CsQuery.1.3.4\lib\net40\CsQuery.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Threading.Tasks.Dataflow, Version=4.5.11.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.Tpl.Dataflow.4.5.11\lib\portable-net45+win8\System.Threading.Tasks.Dataflow.dll</HintPath>
-    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AsyncStore.cs" />
-    <Compile Include="Listener.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Document.cs" />
+    <Compile Include="DocumentFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HappyFace.CsQuery\HappyFace.CsQuery.csproj">
-      <Project>{548e80fb-b9c5-4c1c-a980-c552ac6bf5d4}</Project>
-      <Name>HappyFace.CsQuery</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\HappyFace.HtmlAgilityPack\HappyFace.HtmlAgilityPack.csproj">
-      <Project>{8e1b8833-c438-4964-a14b-e0cc7187927d}</Project>
-      <Name>HappyFace.HtmlAgilityPack</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\HappyFace.Store\HappyFace.Store.csproj">
-      <Project>{e2a74f99-e991-49a5-981a-723a88145d19}</Project>
-      <Name>HappyFace.Store</Name>
-    </ProjectReference>
     <ProjectReference Include="..\HappyFace\HappyFace.csproj">
       <Project>{3c513bac-b717-4646-a5e3-61e10e1cfd0a}</Project>
       <Name>HappyFace</Name>

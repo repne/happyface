@@ -86,7 +86,7 @@ namespace HappyFace
             //{
             //}));
 
-            Storer.SendTo(Provider);
+            Builder.SendTo(Provider);
             Provider.SendTo(Dispatcher, x => x != null);
             Dispatcher.SendTo(Fetcher);
         }

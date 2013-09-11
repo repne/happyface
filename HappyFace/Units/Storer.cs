@@ -6,24 +6,23 @@ using HappyFace.Domain;
 
 namespace HappyFace.Units
 {
-    public sealed class Storer : IConsumerOf<Result>, IProducerOf<Result>
+    public sealed class Storer : IConsumerOf<Result>
     {
         private readonly IKeyValueStore<string, Result> _store;
-        private readonly IPropagatorBlock<Result, Result> _inner;
+        private readonly ITargetBlock<Result> _inner;
 
-        private Result Store(Result result)
+        private void Store(Result result)
         {
             _store.Set(result.GetKey(), result);
-            return result;
         }
 
         #region Constructors
 
-        public Storer(IKeyValueStore<string, Result> store, Func<Result, Result> transform = null)
+        public Storer(IKeyValueStore<string, Result> store, Action<Result> action = null)
         {
             _store = store;
-            transform = transform ?? Store;
-            _inner = new BroadcastBlock<Result>(transform);
+            action = action ?? Store;
+            _inner = new ActionBlock<Result>(action);
         }
 
         #endregion
@@ -31,18 +30,6 @@ namespace HappyFace.Units
         #region IConsumerOf
 
         public ITargetBlock<Result> Input
-        {
-            get
-            {
-                return _inner;
-            }
-        }
-
-        #endregion
-
-        #region IProducerOf
-
-        public ISourceBlock<Result> Output
         {
             get
             {
